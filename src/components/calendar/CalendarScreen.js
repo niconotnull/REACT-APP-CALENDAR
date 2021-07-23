@@ -7,41 +7,40 @@ import 'moment/locale/es';
 import { CalendaEvent } from './CalendaEvent';
 import { useState } from 'react';
 import { CalendarModal } from './CalendarModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { uiOpenModal } from '../../actions/ui';
+import { eventClearActiveEvent, eventSetActive } from '../../actions/events';
+import { AddNewFab } from '../ui/AddNewFab';
+import { DeleteEventFab } from '../ui/DeleteEventFab';
 
 moment.locale('es');
 
 const localizer = momentLocalizer(moment);
 
-const events = [
-  {
-    title: 'Cumpleños de Nicolas',
-    start: moment().toDate(),
-    end: moment().add(2, 'hours').toDate(),
-    bgcolor: '#fafafa',
-    notes: 'Comprar el pastel',
-    user: {
-      _id: '123',
-      name: 'Nicolas',
-    },
-  },
-];
-
 export const CalendarScreen = () => {
+  const dispatch = useDispatch();
+  const { events, activeEvent } = useSelector((state) => state.calendar);
+
   const [lastView, setLastView] = useState(
     localStorage.getItem('lastView') || 'month'
   );
 
   const onDoubleClick = (e) => {
-    console.log(e);
+    dispatch(uiOpenModal());
   };
 
   const onSelectEvent = (e) => {
-    console.log(e);
+    dispatch(eventSetActive(e));
   };
 
   const onViewChange = (e) => {
     setLastView(e);
     localStorage.setItem('lastView', e);
+  };
+
+  const onSelectSlot = (e) => {
+    //console.log(e);  interezante
+    dispatch(eventClearActiveEvent());
   };
 
   const eventStyleGetter = (event, start, end, isSelected) => {
@@ -70,11 +69,16 @@ export const CalendarScreen = () => {
         eventPropGetter={eventStyleGetter}
         onDoubleClickEvent={onDoubleClick}
         onSelectEvent={onSelectEvent}
+        onSelectSlot={onSelectSlot}
+        selectable={true}
         onView={onViewChange}
         view={lastView}
         components={{ event: CalendaEvent }}
       />
       <CalendarModal />
+
+      <AddNewFab />
+      {activeEvent && <DeleteEventFab />}
     </div>
   );
 };
